@@ -19,3 +19,11 @@ Grid / Flexbox
 .flex.h-left {
     justify-content: left;
 }
+
+.flex.h-right {
+    justify-content: right;
+}
+
+.flex.h-space-between {
+    justify-content: space-between;
+}

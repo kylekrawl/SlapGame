@@ -12,25 +12,59 @@
 		<div class="row header">
 			<div class="col-sm-offset-1 col-sm-10">
 				<div class="flex v-center h-center">
-					<span>Health: <span id="health">--</span></span>
-					<span>Name: <span id="name">--</span></span>
-					<span>Hits: <span id="hits">--</span></span>
+					<div class="content-wrapper">
+						<p>Turn:
+							<span id="turn">--</span>
+						</p>
+						<div class="flex v-center h-center">
+							<button onclick='game.addItemToCharacter(game.availableItems.mainWeapon, player)'>Get Main Weapon</button>
+							<button onclick='game.addItemToCharacter(game.availableItems.sideWeapon, player)'>Get Side Weapon</button>
+							<button onclick='game.addItemToCharacter(game.availableItems.utilityItem, player)'>Get Utility Item</button>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
 		<div class="row main">
 			<div class="col-sm-offset-1 col-sm-10">
-				<div class="flex v-center h-center">
-					<img src="//placehold.it/200x300" alt="">
+				<div class="flex v-center h-space-between">
+					<div class="player-wrapper">
+						<div class="stat-display">
+							<p>Health:
+								<span id="player-health">--</span>
+							</p>
+							<p>Energy:
+								<span id="player-energy">--</span>
+							</p>
+							<p>Name:
+								<span id="player-name">--</span>
+							</p>
+						</div>
+						<img src="//placehold.it/200x300" alt="">
+					</div>
+					<div class="enemy-wrapper">
+						<div class="stat-display">
+							<p>Health:
+								<span id="enemy-health">--</span>
+							</p>
+							<p>Energy:
+								<span id="enemy-energy">--</span>
+							</p>
+							<p>Name:
+								<span id="enemy-name">--</span>
+							</p>
+						</div>
+						<img src="//placehold.it/200x300" alt="">
+					</div>
 				</div>
 			</div>
 		</div>
 		<div class="row footer">
 			<div class="col-sm-offset-1 col-sm-10">
 				<div class="flex v-center h-center">
-					<button onclick='slap()'>Slap</button>
-					<button onclick='punch()'>Punch</button>
-					<button onclick='kick()'>Kick</button>
+					<button onclick='player.attack("weak", enemy)'>Weak Attack</button>
+					<button onclick='player.attack("moderate", enemy)'>Moderate Attack</button>
+					<button onclick='player.attack("strong", enemy)'>Strong Attack</button>
 				</div>
 			</div>
 		</div>
