@@ -27,3 +27,13 @@ Grid / Flexbox
 .flex.h-space-between {
     justify-content: space-between;
 }
+
+/*
+-------------------
+Buttons
+-------------------
+*/
+
+.btn-disabled {
+    opacity: 50%;
+}

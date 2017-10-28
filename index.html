@@ -17,15 +17,15 @@
 							<span id="turn">--</span>
 						</p>
 						<div class="flex v-center h-center">
-							<button onclick='game.toggleEquippedItem(game.availableItems.mainWeapon, player)'>Main Weapon</button>
-							<button onclick='game.toggleEquippedItem(game.availableItems.sideWeapon, player)'>Side Weapon</button>
-							<button onclick='game.toggleEquippedItem(game.availableItems.barrier, player)'>Barrier</button>
-							<button onclick='game.toggleEquippedItem(game.availableItems.recharger, player)'>Recharger</button>
+							<button id='main-weapon' onclick='game.toggleEquippedItem(game.availableItems.mainWeapon, player)'>Main Weapon</button>
+							<button id='side-weapon' onclick='game.toggleEquippedItem(game.availableItems.sideWeapon, player)'>Side Weapon</button>
+							<button id='barrier' onclick='game.toggleEquippedItem(game.availableItems.barrier, player)'>Barrier</button>
+							<button id='recharger' onclick='game.toggleEquippedItem(game.availableItems.recharger, player)'>Recharger</button>
 						</div>
 						<div class="flex v-center h-center">
-							<button onclick='player.attack("weakAttack", enemy)'>Weak Attack</button>
-							<button onclick='player.attack("moderateAttack", enemy)'>Moderate Attack</button>
-							<button onclick='player.attack("strongAttack", enemy)'>Strong Attack</button>
+							<button id='weak-attack' onclick='player.attack("weakAttack", enemy)'>Weak Attack</button>
+							<button id='moderate-attack' onclick='player.attack("moderateAttack", enemy)'>Moderate Attack</button>
+							<button id='strong-attack' onclick='player.attack("strongAttack", enemy)'>Strong Attack</button>
 						</div>
 					</div>
 				</div>
