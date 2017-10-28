@@ -8,22 +8,25 @@ var Utilities = function () {
         }
         return empty
     }
-    this.randomArrayChoice = function(arr) {
+    this.randomArrayChoice = function (arr) {
         return arr[Math.floor((Math.random() * arr.length))]
     }
 }
 
+//(name, numUses, slot, attackMod = 1, defenseMod = 1, energyCostMod = 1, energyRegenMod = 1, healthRegenMod = 1)
+//(name, maxHealth = 500, baseHealthRegen = 0, maxEnergy = 100, baseEnergyRegen = 5, baseAttack = 1, baseDefense = 1)
 var Game = function () {
     this.currentTurn = 1
     this.characters = {
-        player: new Character('Test Player', 100, 100, 1, 1),
-        enemy: new Character('Test Enemy', 100, 100, 1, 1)
+        player: new Character('Test Player'),
+        enemy: new Character('Test Enemy')
     }
     this.availableItems = {
         //items available for player/enemy use
-        mainWeapon: new Item('Main Weapon', 5, 'mainWeapon', 2, 1),
-        sideWeapon: new Item('Side Weapon', 5, 'sideWeapon', 1.5, 1),
-        utilityItem: new Item('Utility Item', 5, 'utilityItem', 1, 1.2)
+        mainWeapon: new Item('Main Weapon', Infinity, 'weapon', 1.5, 1, 3, 0.5),
+        sideWeapon: new Item('Side Weapon', Infinity, 'weapon', 1.2, 1, 2, 0.5),
+        barrier: new Item('Barrier', 10, 'utility', 1, 2, 1.5, 1, 0),
+        recharger: new Item('Recharger', 10, 'utility', 1, 1, 1, 1.5, 0)
     }
     this.updateDisplay = function () {
         var elementsToUpdate = [
@@ -59,11 +62,9 @@ var Game = function () {
         for (var i = 0; i < elementsToUpdate.length; i++) {
             var element = elementsToUpdate[i]
             document.getElementById(element.id).innerText = element.value
-            console.log('val:' + element.value)
-            console.log(this.characters.enemy.health)
         }
     }
-    this.resetInitialState = function() {
+    this.resetInitialState = function () {
         game = new Game
         player = game.characters.player
         enemy = game.characters.enemy
@@ -71,119 +72,108 @@ var Game = function () {
     }
     this.checkForGameEnd = function () {
         characterDefeated = false
-        for(characterType in this.characters) {
-            console.log('char: ', this.characters[characterType].health)
+        for (characterType in this.characters) {
             if (this.characters[characterType].health <= 0) {
                 characterDefeated = true
             }
         }
-        console.log('defeated: ', characterDefeated)
         if (characterDefeated) {
             this.resetInitialState()
         }
     }
-    this.addItemToCharacter = function (item, character) {
-        // if item is main weapon or side weapon: 
-        // if character has space in equipment slot, add item, else either replace item or alert as invalid action
-        // if item is utility, can be freely swapped out at any time (utility weapons do not degrade)
-        console.log(item)
-        if (item.slot === 'mainWeapon' || item.slot === 'sideWeapon')
-            console.log('item slot: ', item.slot)
-            console.log('item slot: ', character.equipment[item.slot])
-            if (utilities.isEmptyObject(character.equipment[item.slot])) {
-                console.log('item slot: ', character.equipment[item.slot])
-                character.equipment[item.slot] = item
-                console.log('item slot: ', character.equipment[item.slot])
-            } else {
-                // action cannot be taken. prevents players from swapping out weapons to prevent breakage
-            }
-        if (item.slot === 'utilityItem') {
+    this.toggleEquippedItem = function (item, character) {
+        if (character.equipment[item.slot] === item) {
+            character.equipment[item.slot] = {}
+        } else {
             character.equipment[item.slot] = item
         }
-        console.log('equipment in addItem: ', character.equipment)
     }
     this.computerAction = function (computerPlayer) {
         //get computer player action based on current state
     }
 }
 
-var Character = function (name, health, energy, baseAttack, baseDefense) {
+var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy = 100,
+    baseEnergyRegen = 5, baseAttack = 1, baseDefense = 1) {
     this.name = name
-    this.health = health
-    this.maxHealth = this.health
-    this.energy = energy
-    this.maxEnergy = this.maxEnergy
+    this.maxHealth = maxHealth
+    this.health = this.maxHealth
+    this.baseHealthRegen = baseHealthRegen
+    this.maxEnergy = maxEnergy
+    this.energy = this.maxEnergy
+    this.baseEnergyRegen = baseEnergyRegen
     this.baseAttack = baseAttack
     this.baseDefense = baseDefense
     this.equipment = {
-        mainWeapon: {},
-        sideWeapon: {},
-        utilityItem: {}
+        weapon: {},
+        utility: {}
     }
-    this.calculateItemModifier = function (mode) {
-        console.log('current char: ', this)
+    this.calculateItemModifier = function (modType) {
         console.log('equipment in Item Mod: ', this.equipment)
         var out = 1
-        if (mode === 'attack') {
-            // iterate through all items, sum attack modifiers
-            for (slot in this.equipment) {
-                console.log('item slot: ', this.equipment[slot])
-                if (!utilities.isEmptyObject(this.equipment[slot])) { 
-                    out += this.equipment[slot].attackMod
-                    console.log('slot attack mod: ', this.equipment[slot].attackMod)
-                    console.log('out: ' + out)
-                }
+        for (slot in this.equipment) {
+            console.log('item slot: ', this.equipment[slot])
+            if (!utilities.isEmptyObject(this.equipment[slot])) {
+                out += this.equipment[slot][modType]
             }
         }
-        if (mode === 'defend') {
-            // iterate through all items, sum defense modifiers
-            for (slot in this.equipment) {
-                if (!utilities.isEmptyObject(this.equipment.slot)) { 
-                    out += slot.defenseMod
-                }
+        console.log(`${modType}: `, out)
+        return out
+    }
+    this.actionTypes = {
+        weakAttack: {
+            name: 'weak attack',
+            baseEnergyCost: 0,
+            baseDamage: 5
+        },
+        moderateAttack: {
+            name: 'moderate attack',
+            baseEnergyCost: 10,
+            baseDamage: 10
+        },
+        strongAttack: {
+            name: 'strong attack',
+            baseEnergyCost: 20,
+            baseDamage: 15
+        }
+    }
+    this.regenerateAttribute = function (attribute) {
+        var attributeProperties = {
+            health:
+            {
+                max: 'maxHealth',
+                base: 'baseHealthRegen',
+                mod: 'healthRegenMod'
+            },
+            energy: {
+                max: 'maxEnergy',
+                base: 'baseEnergyRegen',
+                mod: 'energyRegenMod'
             }
         }
-        console.log('attack mod: ', out)
-        return out //return modifier
+        var max = attributeProperties[attribute].max
+        var base = attributeProperties[attribute].base
+        var mod = attributeProperties[attribute].mod
+        console.log('base: ', this[base])
+        console.log('mod: ', mod)
+        this[attribute] += this[base] * this.calculateItemModifier(mod)
+        if (this[attribute] > this[max]) {
+            this[attribute] = this[max]
+        }
+        if (this[attribute] < 0) {
+            this[attribute] = 0
+        }
     }
     this.attack = function (type, target) {
-        //link attack type to damage and cost in object
-        var attackAttributes = {
-            weak: {
-                name: 'weak attack',
-                energyCost: 0,
-                baseDamage: 5
-            },
-            moderate: {
-                name: 'moderate attack',
-                energyCost: 10,
-                baseDamage: 15
-            },
-            strong: {
-                name: 'strong attack',
-                energyCost: 20,
-                baseDamage: 25
-            }
-        }
-
         console.log('target: ', target)
 
-        //set base damage, energy cost
-        var damage = this.baseAttack + attackAttributes[type].baseDamage
-        console.log('damage: ' + damage)
-        var energyCost = attackAttributes[type].energyCost
-        console.log(target)
-        var enemyDefense = target.baseDefense * target.calculateItemModifier('defend')
+        var damage = (this.baseAttack + this.actionTypes[type].baseDamage) * this.calculateItemModifier('attackMod')
+        var energyCost = this.actionTypes[type].baseEnergyCost * this.calculateItemModifier('energyCostMod')
+        var enemyDefense = target.baseDefense * target.calculateItemModifier('defenseMod')
+
         console.log('target BD: ', target.baseDefense)
-        console.log('target IM: ', target.calculateItemModifier('defend'))
-        //multiply base damage by return value of calculateItemModifier()
-        damage *= this.calculateItemModifier('attack')
-        //decrease character energy by energy cost
-        console.log('this: ', this)
-        this.energy -= energyCost
-        if (this.energy < 0) {
-            this.energy = 0
-        }
+        console.log('target IM: ', target.calculateItemModifier('defenseMod'))
+
         //decrease target character health by difference between attacker attack defender defense
         //if defense modifier greater or equal, attack deals no damage
         damage -= enemyDefense
@@ -196,41 +186,25 @@ var Character = function (name, health, energy, baseAttack, baseDefense) {
         if (target.health < 0) {
             target.health = 0
         }
+
+        this.energy -= energyCost
+        this.regenerateAttribute('energy')
+        this.regenerateAttribute('health')
         game.currentTurn += 1
         game.updateDisplay()
         game.checkForGameEnd()
     }
-    //could bundle these two into restoreAttribute
-    this.restoreAttribute = function (attribute) {
-        //restore health at cost of energy
-        //if health exceeds maxHealth after restoration, set to maxHealth
-        if (this.hasOwnProperty(attribute)) {
-            this.attribute += 10
-            if (this.attribute != 'energy') {
-                this.energy -= 10
-            }
-            if (this.health > this.maxHealth) {
-                this.health = this.maxHealth
-            }
-            if (this.energy > this.maxEnergy) {
-                this.energy = this.maxEnergy
-            }
-            if (this.energy < 0) {
-                this.energy = 0
-            }
-        }
-    }
-
-    this.actionTypes = [] //action types as functions in array. add method to iterate through 
-    //these and disable anything player doesn't have enough energy for
 }
 
-var Item = function (name, numUses, slot, attackMod, defenseMod) {
+var Item = function (name, numUses, slot, attackMod = 1, defenseMod = 1, energyCostMod = 1, energyRegenMod = 1, healthRegenMod = 1) {
     this.name = name
     this.numUses = numUses
     this.slot = slot
     this.attackMod = attackMod
     this.defenseMod = defenseMod
+    this.energyCostMod = energyCostMod
+    this.energyRegenMod = energyRegenMod
+    this.healthRegenMod = energyRegenMod
 }
 
 // Initialize Game
