@@ -30,10 +30,25 @@ Grid / Flexbox
 
 /*
 -------------------
+Interface
+-------------------
+*/
+
+.main-interface {
+    height: 200px;
+}
+
+/*
+-------------------
 Buttons
 -------------------
 */
 
 .btn-disabled {
-    opacity: 50%;
+    background: red;
+    opacity: 0.5;
+}
+
+.btn-equipped {
+    background: green
 }

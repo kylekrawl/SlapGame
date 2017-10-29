@@ -17,33 +17,72 @@ var Utilities = function () {
 //(name, maxHealth = 500, baseHealthRegen = 0, maxEnergy = 100, baseEnergyRegen = 5, baseAttack = 1, baseDefense = 1)
 var Game = function () {
     this.currentTurn = 1
+    this.availableItems = {
+        plasmaRounds: {
+            name: 'Plasma Rounds',
+            obj: new Item('Plasma Rounds', 10, 'weapon', 1.5, 1, 3, 0.5),
+            id: 'plasma-rounds'
+        },
+        pulseRounds: {
+            name: 'Pulse Rounds',
+            obj: new Item('Pulse Rounds', Infinity, 'weapon', 1.2, 1, 2, 0.5),
+            id: 'pulse-rounds'
+        },
+        barrier: {
+            name: 'Barrier',
+            obj: new Item('Barrier', Infinity, 'utility', 1, 2, 1.5, 1, 0),
+            id: 'barrier'
+        },
+        recharger: {
+            name: 'Recharger',
+            obj: new Item('Recharger', 5, 'utility', 1, 1, 1, 1.5, 0),
+            id: 'recharger'
+        }
+    }
+    this.availableAttacks = {
+        singleShot: {
+            name: 'Single Shot',
+            id: 'single-shot',
+            baseEnergyCost: 0,
+            baseDamage: 5
+        },
+        burstFire: {
+            name: 'Burst Fire',
+            id: 'burst-fire',
+            baseEnergyCost: 10,
+            baseDamage: 15
+        },
+        overcharge: {
+            name: 'Overcharge',
+            id: 'overcharge',
+            baseEnergyCost: 20,
+            baseDamage: 25
+        },
+    }
     this.characters = {
         player: new Character('Test Player'),
         enemy: new Character('Test Enemy')
     }
-    this.availableItems = {
-        //items available for player/enemy use
-        mainWeapon: new Item('Main Weapon', Infinity, 'weapon', 1.5, 1, 3, 0.5),
-        sideWeapon: new Item('Side Weapon', Infinity, 'weapon', 1.2, 1, 2, 0.5),
-        barrier: new Item('Barrier', 10, 'utility', 1, 2, 1.5, 1, 0),
-        recharger: new Item('Recharger', 10, 'utility', 1, 1, 1, 1.5, 0)
+    this.drawActionInterface = function () {
+        var itemInterfaceHTML = ''
+        var attackInterfaceHTML = ''
+        for (item in this.availableItems) {
+            itemInterfaceHTML += `<button id='${this.availableItems[item].id}' 
+                                  onclick='game.toggleEquippedItem("${item}", player)'>
+                                  ${this.availableItems[item].name}</button>`
+        }
+        for (attack in this.availableAttacks) {
+            attackInterfaceHTML += `<button id='${this.availableAttacks[attack].id}' 
+                                    onclick='player.attack("${attack}", enemy)'>
+                                    ${this.availableAttacks[attack].name}</button>`
+        }
+        document.getElementById('item-interface').innerHTML = itemInterfaceHTML
+        document.getElementById('attack-interface').innerHTML = attackInterfaceHTML
     }
     this.updateActionInterface = function (character) {
-        //TODO: condense this down into one hash and one loop
-        var characterActions = {
-            weakAttack: 'weak-attack',
-            moderateAttack: 'moderate-attack',
-            strongAttack: 'strong-attack',
-        }
-        var items = {
-            mainWeapon: 'main-weapon',
-            sideWeapon: 'side-weapon',
-            barrier: 'barrier',
-            recharger: 'recharger'
-        }
-        for (action in characterActions) {
-            var element = document.getElementById(characterActions[action])
-            if (character.availableActions().includes(action)) {
+        for (attack in this.availableAttacks) {
+            var element = document.getElementById(this.availableAttacks[attack].id)
+            if (character.availableActions().includes(attack)) {
                 element.disabled = false
                 element.classList.remove('btn-disabled')
             } else {
@@ -51,16 +90,23 @@ var Game = function () {
                 element.classList.add('btn-disabled')
             }
         }
-        for (item in items) {
-            var element = document.getElementById(items[item])
-            if (character.availableItems().includes(item)) {
+        for (item in this.availableItems) {
+            var element = document.getElementById(this.availableItems[item].id)
+            if (character.availableItems().includes(this.availableItems[item].obj)) {
                 element.disabled = false
                 element.classList.remove('btn-disabled')
             } else {
                 element.disabled = true
                 element.classList.add('btn-disabled')
             }
+            if (character.equipment[this.availableItems[item].obj.slot] === this.availableItems[item].obj) {
+                element.classList.add('btn-equipped')
+            } else {
+                element.classList.remove('btn-equipped')
+            }
+
         }
+        console.log('equipment: ', character.equipment)
     }
     this.updateDisplay = function () {
         var elementsToUpdate = [
@@ -99,10 +145,14 @@ var Game = function () {
         }
         this.updateActionInterface(player)
     }
-    this.resetInitialState = function () {
-        game = new Game
+    this.newGame = function () {
+        game = new Game()
+        game.setInitialState()
+    }
+    this.setInitialState = function () {
         player = game.characters.player
         enemy = game.characters.enemy
+        game.drawActionInterface()
         game.updateDisplay()
     }
     this.checkForGameEnd = function () {
@@ -113,22 +163,22 @@ var Game = function () {
             }
         }
         if (characterDefeated) {
-            this.resetInitialState()
+            this.newGame()
         }
     }
     this.toggleEquippedItem = function (item, character) {
-        if (character.equipment[item.slot] === item) {
-            character.equipment[item.slot] = {}
+        if (character.equipment[this.availableItems[item].obj.slot] === this.availableItems[item].obj) {
+            character.equipment[this.availableItems[item].obj.slot] = {}
         } else {
-            character.equipment[item.slot] = item
+            character.equipment[this.availableItems[item].obj.slot] = this.availableItems[item].obj
         }
         game.updateActionInterface(character)
     }
-    this.enemyAction = function (enemy=enemy, target=player) {
-        if (enemy.availableActions().includes('moderateAttack')) {
-            enemy.attack('moderateAttack', target)
+    this.enemyAction = function (enemy = enemy, target = player) {
+        if (enemy.availableActions().includes('burstFire')) {
+            enemy.attack('burstFire', target)
         } else {
-            enemy.attack('weakAttack', target)       
+            enemy.attack('singleShot', target)
         }
     }
 }
@@ -148,23 +198,6 @@ var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy 
         weapon: {},
         utility: {}
     }
-    this.actionTypes = {
-        weakAttack: {
-            name: 'weak attack',
-            baseEnergyCost: 0,
-            baseDamage: 5
-        },
-        moderateAttack: {
-            name: 'moderate attack',
-            baseEnergyCost: 10,
-            baseDamage: 10
-        },
-        strongAttack: {
-            name: 'strong attack',
-            baseEnergyCost: 20,
-            baseDamage: 15
-        }
-    }
     this.calculateItemModifier = function (modType) {
         var out = 1
         for (slot in this.equipment) {
@@ -176,8 +209,8 @@ var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy 
     }
     this.availableActions = function () {
         var out = []
-        for (actionType in this.actionTypes)
-            if (this.energy >= this.actionTypes[actionType].baseEnergyCost * this.calculateItemModifier('energyCostMod')) {
+        for (actionType in game.availableAttacks)
+            if (this.energy >= game.availableAttacks[actionType].baseEnergyCost * this.calculateItemModifier('energyCostMod')) {
                 out.push(actionType)
             }
         return out
@@ -185,8 +218,9 @@ var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy 
     this.availableItems = function () {
         var out = []
         for (itemType in game.availableItems) {
-            if (game.availableItems[itemType].numUses > 0) {
-                out.push(itemType)
+            console.log(game.availableItems[itemType].obj)
+            if (game.availableItems[itemType].obj.numUses > 0) {
+                out.push(game.availableItems[itemType].obj)
             }
         }
         return out
@@ -218,13 +252,10 @@ var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy 
         }
     }
     this.attack = function (type, target) {
-        console.log(this, target)
-        var damage = Math.round((this.baseAttack + this.actionTypes[type].baseDamage) * this.calculateItemModifier('attackMod'))
-        var energyCost = Math.round(this.actionTypes[type].baseEnergyCost * this.calculateItemModifier('energyCostMod'))
+        var damage = Math.round((this.baseAttack + game.availableAttacks[type].baseDamage) * this.calculateItemModifier('attackMod'))
+        var energyCost = Math.round(game.availableAttacks[type].baseEnergyCost * this.calculateItemModifier('energyCostMod'))
         var enemyDefense = Math.round(target.baseDefense * target.calculateItemModifier('defenseMod'))
 
-        //decrease target character health by difference between attacker attack defender defense
-        //if defense modifier greater or equal, attack deals no damage
         damage -= enemyDefense
 
         if (enemyDefense > damage) {
@@ -238,10 +269,10 @@ var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy 
         this.energy -= energyCost
         this.regenerateAttribute('energy')
         this.regenerateAttribute('health')
-        game.currentTurn += 1
         game.updateDisplay()
         game.checkForGameEnd()
         if (this === player) {
+            game.currentTurn += 1
             game.enemyAction(enemy)
         }
     }
@@ -259,9 +290,7 @@ var Item = function (name, numUses, slot, attackMod = 1, defenseMod = 1, energyC
 }
 
 // Initialize Game
-var player; var enemy
+var player; var enemy;
 var utilities = new Utilities()
 var game = new Game()
-var player = game.characters.player
-var enemy = game.characters.enemy
-game.updateDisplay()
+game.setInitialState()
