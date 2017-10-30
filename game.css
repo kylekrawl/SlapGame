@@ -149,7 +149,7 @@ Combat Area
 .stat-bar {
     height: 20px;
     width: 100%;
-    background: #000;
+    background: #ff3300;
 }
 
 .hull-bar {
@@ -158,6 +158,10 @@ Combat Area
 
 .energy-bar {
     background: #e6b800;
+}
+
+.defeated {
+    opacity: 0;
 }
 
 /*

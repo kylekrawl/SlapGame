@@ -288,6 +288,8 @@ var Game = function () {
     this.setInitialState = function () {
         player = game.characters.player
         enemy = game.characters.enemy
+        document.getElementById('player-wrapper').classList.remove('defeated')
+        document.getElementById('enemy-wrapper').classList.remove('defeated')
         game.updateCharacterImage(player, 'idle')
         game.updateCharacterImage(enemy, 'idle')
         game.drawActionInterface()
@@ -306,8 +308,10 @@ var Game = function () {
             this.disableInterface('item-interface')
             this.disableInterface('attack-interface')
             if (player.hull <= 0) {
+                document.getElementById('player-wrapper').classList.add('defeated')
                 this.displayOverlay(3000, 'defeat')
             } else {
+                document.getElementById('enemy-wrapper').classList.add('defeated')
                 this.displayOverlay(3000, 'victory')
             }
             setTimeout(this.newGame, 3000)
