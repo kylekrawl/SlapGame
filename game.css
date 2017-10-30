@@ -4,6 +4,10 @@ Grid / Flexbox
 -------------------
 */
 
+body, html {
+    height: 100vh;
+}
+
 .flex {
     display: flex;
 }
@@ -30,12 +34,94 @@ Grid / Flexbox
 
 /*
 -------------------
-Interface
+Base Styles
 -------------------
 */
 
-.main-interface {
-    height: 200px;
+body {
+    background: #000;
+    color: #a6a6a6;
+}
+
+/*
+-------------------
+Controls Area
+-------------------
+*/
+
+.controls-area {
+    background: #0d0d0d;
+    border-top: 2px solid #1a1a1a;
+    border-bottom: 2px solid #1a1a1a;
+}
+
+.main-interface,
+.player-status,
+.enemy-status {
+    height: 25vh;
+    background: #000;
+    border-left: 2px solid #a6a6a6;
+    border-right: 2px solid #a6a6a6;
+}
+
+.main-interface button {
+    margin: 5px;
+}
+
+.disabled-interface {
+    pointer-events: none;
+    opacity: 0.5
+}
+
+.status-message {
+    font-size: 1.2em;
+    margin: 20px;
+    padding: 10px;
+}
+
+.status-normal {
+    color: #00ffff;
+    border: 2px solid #00ffff;
+    border-radius: 2px;
+}
+
+.status-warning {
+    color: #ff9900;
+    border: 2px solid #ff9900;
+    border-radius: 2px;
+}
+
+.status-critical {
+    color: #ff3300;
+    border: 2px solid #ff3300;
+    border-radius: 2px;
+}
+/*
+-------------------
+Combat Area
+-------------------
+*/
+
+.combat-area {
+    background: #1a000d;
+}
+
+.characters {
+    height: 75vh;
+}
+
+.stat-display {
+    padding: 10px;
+}
+
+.stat-bar {
+    height: 20px;
+    width: 100%;
+    background: #000;
+}
+
+.progress-bar {
+    background: green;
 }
 
 /*
@@ -44,11 +130,24 @@ Buttons
 -------------------
 */
 
+.btn-main {
+    background: #000;
+    color: #a6a6a6;
+    border: 2px solid #a6a6a6;
+    border-radius: 2px;
+}
+
+.btn-main:active,
+.btn-main:focus {
+    outline: none;
+}
+
 .btn-disabled {
-    background: red;
-    opacity: 0.5;
+    color: #ff3300;
+    border: 2px solid #ff3300;
 }
 
 .btn-equipped {
-    background: green
+    color: #00ffff;
+    border: 2px solid #00ffff;
 }

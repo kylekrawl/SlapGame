@@ -13,58 +13,58 @@
 
 <body>
 	<div class="container-fluid">
-		<div class="row header">
-			<div class="col-sm-offset-1 col-sm-10">
+		<div class="row controls-area">
+			<div class="col-sm-offset-1 col-sm-3">
+				<div class="player-status flex v-center h-center">
+					<div class="content-wrapper text-center">
+						<p class="status-message" id="hull-condition">--</p>
+						<p class="status-message" id="power-level">--</p>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-4">
 				<div class="main-interface flex v-center h-center">
 					<div class="content-wrapper text-center">
 						<p>Turn:
 							<span id="turn">--</span>
 						</p>
+						<p class="interface-label">Equipment</p>
 						<div id="item-interface" class="flex v-center h-center">
 						</div>
+						<p class="interface-label">Attack Modes</p>
 						<div id="attack-interface" class="flex v-center h-center">
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-		<div class="row main">
-			<div class="col-sm-offset-1 col-sm-10">
-				<div class="flex v-center h-space-between">
-					<div class="player-wrapper">
-						<div class="stat-display">
-							<p>Health:
-								<span id="player-health">--</span>
-							</p>
-							<p>Energy:
-								<span id="player-energy">--</span>
-							</p>
-							<p>Name:
-								<span id="player-name">--</span>
-							</p>
-						</div>
-						<img src="//placehold.it/200x300" alt="">
-					</div>
-					<div class="enemy-wrapper">
-						<div class="stat-display">
-							<p>Health:
-								<span id="enemy-health">--</span>
-							</p>
-							<p>Energy:
-								<span id="enemy-energy">--</span>
-							</p>
-							<p>Name:
-								<span id="enemy-name">--</span>
-							</p>
-						</div>
-						<img src="//placehold.it/200x300" alt="">
+			<div class="col-sm-3">
+				<div class="enemy-status flex v-center h-center">
+					<div class="content-wrapper text-center">
+						<p class="status-message" id="enemy-status">--</p>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="row footer">
+		<div class="row combat-area">
 			<div class="col-sm-offset-1 col-sm-10">
-
+				<div class="characters flex v-center h-space-between">
+					<div class="player-wrapper">
+						<div class="stat-display text-center">
+							<span id="player-name">--</span>
+							<div id="player-health-bar-wrapper"></div>
+							<div id="player-energy-bar-wrapper"></div>
+						</div>
+						<img src="//placehold.it/200x300" alt="">
+					</div>
+					<div class="enemy-wrapper">
+						<div class="stat-display text-center">
+							<span id="enemy-name">--</span>
+							<div id="enemy-health-bar-wrapper"></div>
+							<div id="enemy-energy-bar-wrapper"></div>
+						</div>
+						<img src="//placehold.it/200x300" alt="">
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>

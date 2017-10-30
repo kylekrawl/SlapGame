@@ -1,26 +1,32 @@
 var Utilities = function () {
     this.isEmptyObject = function (obj) {
         var empty = true
-        for (key in obj) {
+        for (var key in obj) {
             if (obj.hasOwnProperty(key)) {
                 empty = false
             }
         }
         return empty
     }
+    this.getRandomNumber = function (min = 0, max = 1) {
+        return Math.random() * (max - min) + min
+    }
     this.randomArrayChoice = function (arr) {
-        return arr[Math.floor((Math.random() * arr.length))]
+        return arr[Math.floor(getRandomNumber(0, arr.length))]
+    }
+    this.capitalize = function(str) {
+        return str.replace(str[0], str[0].toUpperCase())
     }
 }
 
 //(name, numUses, slot, attackMod = 1, defenseMod = 1, energyCostMod = 1, energyRegenMod = 1, healthRegenMod = 1)
-//(name, maxHealth = 500, baseHealthRegen = 0, maxEnergy = 100, baseEnergyRegen = 5, baseAttack = 1, baseDefense = 1)
+//(name, type, maxHealth = 500, baseHealthRegen = 0, maxEnergy = 100, baseEnergyRegen = 5, baseAttack = 1, baseDefense = 1)
 var Game = function () {
     this.currentTurn = 1
     this.availableItems = {
         plasmaRounds: {
             name: 'Plasma Rounds',
-            obj: new Item('Plasma Rounds', 10, 'weapon', 1.5, 1, 3, 0.5),
+            obj: new Item('Plasma Rounds', 3, 'weapon', 1.5, 1, 3, 0.5),
             id: 'plasma-rounds'
         },
         pulseRounds: {
@@ -60,27 +66,74 @@ var Game = function () {
         },
     }
     this.characters = {
-        player: new Character('Test Player'),
-        enemy: new Character('Test Enemy')
+        player: new Character('Test Player', 'player'),
+        enemy: new Character('Test Enemy', 'enemy')
     }
     this.drawActionInterface = function () {
         var itemInterfaceHTML = ''
         var attackInterfaceHTML = ''
-        for (item in this.availableItems) {
-            itemInterfaceHTML += `<button id='${this.availableItems[item].id}' 
+        for (var item in this.availableItems) {
+            itemInterfaceHTML += `<button id='${this.availableItems[item].id}' class='btn-main'
                                   onclick='game.toggleEquippedItem("${item}", player)'>
                                   ${this.availableItems[item].name}</button>`
         }
-        for (attack in this.availableAttacks) {
-            attackInterfaceHTML += `<button id='${this.availableAttacks[attack].id}' 
+        for (var attack in this.availableAttacks) {
+            attackInterfaceHTML += `<button id='${this.availableAttacks[attack].id}' class='btn-main'
                                     onclick='player.attack("${attack}", enemy)'>
                                     ${this.availableAttacks[attack].name}</button>`
         }
         document.getElementById('item-interface').innerHTML = itemInterfaceHTML
         document.getElementById('attack-interface').innerHTML = attackInterfaceHTML
     }
+    this.drawCharacterStatBars = function(character) {
+        var statBars = {
+            player: {
+                health: {
+                    wrapperId: 'player-health-bar-wrapper',
+                    barId: 'player-health-bar',
+                    statId: 'player-health',
+                    max: 'maxHealth'
+                },
+                energy: {
+                    wrapperId: 'player-energy-bar-wrapper',
+                    barId: 'player-energy-bar',
+                    statId: 'player-energy',
+                    max: 'maxEnergy'
+                }
+            },
+            enemy: {
+                health: {
+                    wrapperId: 'enemy-health-bar-wrapper',
+                    barId: `enemy-health-bar`,
+                    statId: 'enemy-health',
+                    styleClass: 'health-bar',
+                    max: 'maxHealth'
+                },
+                energy: {
+                    wrapperId: 'enemy-energy-bar-wrapper',
+                    barId: `enemy-energy-bar`,
+                    statId: 'enemy-energy',
+                    styleClass: 'energy-bar',
+                    max: 'maxEnergy'
+                }
+            }
+        }
+        console.log(statBars[character.type])
+        for (var statType in statBars[character.type]) { 
+            var statBarHTML = `<span>${utilities.capitalize(statType)}</span>
+                               <div class="stat-bar">
+                                    <div id="${statBars[character.type][statType].barId}" class="progress-bar" role="progressbar" aria-valuenow="${character[statType]}" 
+                                    aria-valuemin="0" aria-valuemax="${character[statBars[character.type][statType].max]}" style="width: ${Math.round(character[statType]/
+                               character[statBars[character.type][statType].max]*100)}%">
+                                        <span id="${statBars[character.type][statType].statId}">${character[statType]}</span>
+                                    </div>
+                               </div>`
+            console.log(statBarHTML)
+            document.getElementById(statBars[character.type][statType].wrapperId).innerHTML = statBarHTML
+        }
+    }
     this.updateActionInterface = function (character) {
-        for (attack in this.availableAttacks) {
+        for (var attack in this.availableAttacks) {
             var element = document.getElementById(this.availableAttacks[attack].id)
             if (character.availableActions().includes(attack)) {
                 element.disabled = false
@@ -90,45 +143,82 @@ var Game = function () {
                 element.classList.add('btn-disabled')
             }
         }
-        for (item in this.availableItems) {
+        for (var item in this.availableItems) {
             var element = document.getElementById(this.availableItems[item].id)
+            if (character.equipment[this.availableItems[item].obj.slot] === this.availableItems[item].obj) {
+                element.classList.add('btn-equipped')
+            } else {
+                element.classList.remove('btn-equipped')
+            }
             if (character.availableItems().includes(this.availableItems[item].obj)) {
                 element.disabled = false
                 element.classList.remove('btn-disabled')
             } else {
                 element.disabled = true
                 element.classList.add('btn-disabled')
-            }
-            if (character.equipment[this.availableItems[item].obj.slot] === this.availableItems[item].obj) {
-                element.classList.add('btn-equipped')
-            } else {
                 element.classList.remove('btn-equipped')
             }
-
         }
-        console.log('equipment: ', character.equipment)
+    }
+    this.updateStatusMessages = function () {
+        var hullConditionMessage = document.getElementById('hull-condition')
+        var powerLevelMessage = document.getElementById('power-level')
+        var enemyStatusMessage = document.getElementById('enemy-status')
+        if (player.health > player.maxHealth/2) {
+            hullConditionMessage.innerText = "Hull Condition Normal"
+            hullConditionMessage.classList.add('status-normal')
+            hullConditionMessage.classList.remove('status-warning')
+            hullConditionMessage.classList.remove('status-critical')
+        } else if (player.health > player.maxHealth/10) {
+            hullConditionMessage.innerText = "Warning: Significant Hull Damage"
+            hullConditionMessage.classList.add('status-warning')
+            hullConditionMessage.classList.remove('status-normal')
+            hullConditionMessage.classList.remove('status-critical')
+        } else {
+            hullConditionMessage.innerText = "Warning: Hull Condition Critical"
+            hullConditionMessage.classList.add('status-critical')
+            hullConditionMessage.classList.remove('status-warning')
+            hullConditionMessage.classList.remove('status-normal')
+        }
+        if (player.energy > player.maxEnergy/2) {
+            powerLevelMessage.innerText = "Power Level Normal"
+            powerLevelMessage.classList.add('status-normal')
+            powerLevelMessage.classList.remove('status-warning')
+            powerLevelMessage.classList.remove('status-critical')
+        } else if (player.energy > player.maxEnergy/10) {
+            powerLevelMessage.innerText = "Warning: Low Power Level"
+            powerLevelMessage.classList.add('status-warning')
+            powerLevelMessage.classList.remove('status-normal')
+            powerLevelMessage.classList.remove('status-critical')
+        } else {
+            powerLevelMessage.innerText = "Warning: Power Level Critical"
+            powerLevelMessage.classList.add('status-critical')
+            powerLevelMessage.classList.remove('status-warning')
+            powerLevelMessage.classList.remove('status-normal')
+        }
+        if (enemy.health > 0) {
+            enemyStatusMessage.innerText = "Status: Engaged in Combat"
+            enemyStatusMessage.classList.add('status-warning')
+            enemyStatusMessage.classList.remove('status-normal')
+        } else {
+            enemyStatusMessage.innerText = "Enemy Combatant Destroyed"
+            enemyStatusMessage.classList.add('status-normal')
+            enemyStatusMessage.classList.remove('status-warning')
+        }
+    }
+    this.disableInterface = function (id) {
+        var interface = document.getElementById(id)
+        interface.classList.add('disabled-interface')
+    }
+    this.enableInterface = function (id) {
+        var interface = document.getElementById(id)
+        interface.classList.remove('disabled-interface')
     }
     this.updateDisplay = function () {
         var elementsToUpdate = [
             {
                 id: 'turn',
                 value: this.currentTurn
-            },
-            {
-                id: 'player-health',
-                value: this.characters.player.health
-            },
-            {
-                id: 'enemy-health',
-                value: this.characters.enemy.health
-            },
-            {
-                id: 'player-energy',
-                value: this.characters.player.energy
-            },
-            {
-                id: 'enemy-energy',
-                value: this.characters.enemy.energy
             },
             {
                 id: 'player-name',
@@ -144,6 +234,9 @@ var Game = function () {
             document.getElementById(element.id).innerText = element.value
         }
         this.updateActionInterface(player)
+        this.drawCharacterStatBars(player)
+        this.drawCharacterStatBars(enemy)
+        this.updateStatusMessages()
     }
     this.newGame = function () {
         game = new Game()
@@ -153,17 +246,21 @@ var Game = function () {
         player = game.characters.player
         enemy = game.characters.enemy
         game.drawActionInterface()
+        this.enableInterface('item-interface')
+        this.enableInterface('attack-interface')
         game.updateDisplay()
     }
     this.checkForGameEnd = function () {
         characterDefeated = false
-        for (characterType in this.characters) {
+        for (var characterType in this.characters) {
             if (this.characters[characterType].health <= 0) {
                 characterDefeated = true
             }
         }
         if (characterDefeated) {
-            this.newGame()
+            this.disableInterface('item-interface')
+            this.disableInterface('attack-interface')
+            setTimeout(this.newGame, 3000)
         }
     }
     this.toggleEquippedItem = function (item, character) {
@@ -183,9 +280,10 @@ var Game = function () {
     }
 }
 
-var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy = 100,
+var Character = function (name, type, maxHealth = 500, baseHealthRegen = 0, maxEnergy = 100,
     baseEnergyRegen = 5, baseAttack = 1, baseDefense = 1) {
     this.name = name
+    this.type = type
     this.maxHealth = maxHealth
     this.health = this.maxHealth
     this.baseHealthRegen = baseHealthRegen
@@ -200,7 +298,7 @@ var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy 
     }
     this.calculateItemModifier = function (modType) {
         var out = 1
-        for (slot in this.equipment) {
+        for (var slot in this.equipment) {
             if (!utilities.isEmptyObject(this.equipment[slot])) {
                 out += this.equipment[slot][modType]
             }
@@ -209,7 +307,7 @@ var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy 
     }
     this.availableActions = function () {
         var out = []
-        for (actionType in game.availableAttacks)
+        for (var actionType in game.availableAttacks)
             if (this.energy >= game.availableAttacks[actionType].baseEnergyCost * this.calculateItemModifier('energyCostMod')) {
                 out.push(actionType)
             }
@@ -217,8 +315,7 @@ var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy 
     }
     this.availableItems = function () {
         var out = []
-        for (itemType in game.availableItems) {
-            console.log(game.availableItems[itemType].obj)
+        for (var itemType in game.availableItems) {
             if (game.availableItems[itemType].obj.numUses > 0) {
                 out.push(game.availableItems[itemType].obj)
             }
@@ -252,7 +349,7 @@ var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy 
         }
     }
     this.attack = function (type, target) {
-        var damage = Math.round((this.baseAttack + game.availableAttacks[type].baseDamage) * this.calculateItemModifier('attackMod'))
+        var damage = Math.round(utilities.getRandomNumber(0.6, 1) * (this.baseAttack + game.availableAttacks[type].baseDamage) * this.calculateItemModifier('attackMod'))
         var energyCost = Math.round(game.availableAttacks[type].baseEnergyCost * this.calculateItemModifier('energyCostMod'))
         var enemyDefense = Math.round(target.baseDefense * target.calculateItemModifier('defenseMod'))
 
@@ -269,6 +366,13 @@ var Character = function (name, maxHealth = 500, baseHealthRegen = 0, maxEnergy 
         this.energy -= energyCost
         this.regenerateAttribute('energy')
         this.regenerateAttribute('health')
+
+        for (var slot in this.equipment) {
+            if (this.equipment[slot].numUses > 0) {
+                this.equipment[slot].numUses -= 1
+            }
+        }
+
         game.updateDisplay()
         game.checkForGameEnd()
         if (this === player) {
