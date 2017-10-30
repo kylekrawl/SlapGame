@@ -14,7 +14,7 @@ var Utilities = function () {
     this.randomArrayChoice = function (arr) {
         return arr[Math.floor(getRandomNumber(0, arr.length))]
     }
-    this.capitalize = function(str) {
+    this.capitalize = function (str) {
         return str.replace(str[0], str[0].toUpperCase())
     }
 }
@@ -66,8 +66,8 @@ var Game = function () {
         },
     }
     this.characters = {
-        player: new Character('Test Player', 'player'),
-        enemy: new Character('Test Enemy', 'enemy')
+        player: new Character('Seraph mk5', 'player'),
+        enemy: new Character('Space Pirate', 'enemy')
     }
     this.drawActionInterface = function () {
         var itemInterfaceHTML = ''
@@ -85,7 +85,7 @@ var Game = function () {
         document.getElementById('item-interface').innerHTML = itemInterfaceHTML
         document.getElementById('attack-interface').innerHTML = attackInterfaceHTML
     }
-    this.drawCharacterStatBars = function(character) {
+    this.drawCharacterStatBars = function (character) {
         var statBars = {
             player: {
                 hull: {
@@ -120,12 +120,12 @@ var Game = function () {
                 }
             }
         }
-        for (var statType in statBars[character.type]) { 
+        for (var statType in statBars[character.type]) {
             var statBarHTML = `<span>${utilities.capitalize(statType)}</span>
                                <div class="stat-bar">
                                     <div id="${statBars[character.type][statType].barId}" class="progress-bar ${statBars[character.type][statType].styleClass}" role="progressbar" 
                                     aria-valuenow="${character[statType]}" aria-valuemin="0" aria-valuemax="${character[statBars[character.type][statType].max]}" style="width: 
-                                    ${Math.round(character[statType]/character[statBars[character.type][statType].max]*100)}%">
+                                    ${Math.round(character[statType] / character[statBars[character.type][statType].max] * 100)}%">
                                         <span id="${statBars[character.type][statType].statId}">${character[statType]}</span>
                                     </div>
                                </div>`
@@ -164,12 +164,13 @@ var Game = function () {
         var hullConditionMessage = document.getElementById('hull-condition')
         var powerLevelMessage = document.getElementById('power-level')
         var enemyStatusMessage = document.getElementById('enemy-status')
-        if (player.hull > player.maxHull/2) {
+        //TODO: Refactor, use iteration over object
+        if (player.hull > player.maxHull / 2) {
             hullConditionMessage.innerText = "Hull Condition Normal"
             hullConditionMessage.classList.add('status-normal')
             hullConditionMessage.classList.remove('status-warning')
             hullConditionMessage.classList.remove('status-critical')
-        } else if (player.hull > player.maxHull/10) {
+        } else if (player.hull > player.maxHull / 10) {
             hullConditionMessage.innerText = "Warning: Significant Hull Damage"
             hullConditionMessage.classList.add('status-warning')
             hullConditionMessage.classList.remove('status-normal')
@@ -180,12 +181,12 @@ var Game = function () {
             hullConditionMessage.classList.remove('status-warning')
             hullConditionMessage.classList.remove('status-normal')
         }
-        if (player.energy > player.maxEnergy/2) {
+        if (player.energy > player.maxEnergy / 2) {
             powerLevelMessage.innerText = "Power Level Normal"
             powerLevelMessage.classList.add('status-normal')
             powerLevelMessage.classList.remove('status-warning')
             powerLevelMessage.classList.remove('status-critical')
-        } else if (player.energy > player.maxEnergy/10) {
+        } else if (player.energy > player.maxEnergy / 10) {
             powerLevelMessage.innerText = "Warning: Low Power Level"
             powerLevelMessage.classList.add('status-warning')
             powerLevelMessage.classList.remove('status-normal')
@@ -258,8 +259,22 @@ var Game = function () {
         this.drawCharacterStatBars(enemy)
         this.updateStatusMessages()
     }
+    this.displayOverlay = function (duration = 2000, playerDefeat = false) {
+        var overlay = document.getElementById('overlay')
+        if (playerDefeat) {
+            overlay.classList.add('defeat-screen')
+        }
+        overlay.classList.remove('hidden')
+        setTimeout(function () {
+            overlay.classList.add('hidden')
+            if (playerDefeat) {
+                overlay.classList.remove('defeat-screen')
+            }
+        }, duration)
+    }
     this.newGame = function () {
         game = new Game()
+        game.displayOverlay()
         game.setInitialState()
     }
     this.setInitialState = function () {
@@ -280,6 +295,9 @@ var Game = function () {
         if (characterDefeated) {
             this.disableInterface('item-interface')
             this.disableInterface('attack-interface')
+            if (player.hull <= 0) {
+                this.displayOverlay(3000, true)
+            }
             setTimeout(this.newGame, 3000)
         }
     }

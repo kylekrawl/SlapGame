@@ -13,6 +13,8 @@
 </head>
 
 <body>
+	<div id="overlay" class="overlay hidden">
+	</div>
 	<div class="container-fluid">
 		<div class="row controls-area">
 			<div class="col-sm-offset-1 col-sm-3">
@@ -51,6 +53,7 @@
 				<div class="enemy-status flex v-center h-center">
 					<div class="content-wrapper text-center">
 						<p class="status-message" id="enemy-status">--</p>
+						<button class="btn-main" onclick="game.newGame()">Reset Mission</button>
 					</div>
 				</div>
 			</div>
