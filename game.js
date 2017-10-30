@@ -36,7 +36,7 @@ var Game = function () {
         },
         barrier: {
             name: 'Barrier',
-            obj: new Item('Barrier', Infinity, 'utility', 0, 2, 1.5, -1),
+            obj: new Item('Barrier', 5, 'utility', 0, 2, 1.5, -1),
             id: 'barrier'
         },
         recharger: {
@@ -75,11 +75,12 @@ var Game = function () {
         for (var item in this.availableItems) {
             itemInterfaceHTML += `<button id='${this.availableItems[item].id}' class='btn-main'
                                   onclick='game.toggleEquippedItem("${item}", player)'>
-                                  ${this.availableItems[item].name}</button>`
+                                  ${this.availableItems[item].name}<br>${this.availableItems[item].obj.numUses === Infinity ? '∞' :
+                    this.availableItems[item].obj.numUses}</button>`
         }
         for (var attack in this.availableAttacks) {
             attackInterfaceHTML += `<button id='${this.availableAttacks[attack].id}' class='btn-main'
-                                    onclick='player.attack("${attack}", enemy)'>
+                                    onclick='player.attackAnimation("${attack}", enemy)'>
                                     ${this.availableAttacks[attack].name}</button>`
         }
         document.getElementById('item-interface').innerHTML = itemInterfaceHTML
@@ -133,6 +134,7 @@ var Game = function () {
         }
     }
     this.updateActionInterface = function (character) {
+        this.drawActionInterface()
         for (var attack in this.availableAttacks) {
             var element = document.getElementById(this.availableAttacks[attack].id)
             if (character.availableActions().includes(attack)) {
@@ -231,15 +233,15 @@ var Game = function () {
             },
             {
                 id: 'player-name',
-                value: this.characters.player.name
+                value: `- ${this.characters.player.name} -`
             },
             {
                 id: 'enemy-name',
-                value: this.characters.enemy.name
+                value: `- ${this.characters.enemy.name} -`
             },
             {
                 id: 'player-energy-regen',
-                value: `+${Math.round(player.baseEnergyRegen * player.calculateItemModifier('energyRegenMod'))}`
+                value: `${Math.round(player.baseEnergyRegen * player.calculateItemModifier('energyRegenMod'))}`
             },
             {
                 id: 'player-defense-mod',
@@ -259,16 +261,22 @@ var Game = function () {
         this.drawCharacterStatBars(enemy)
         this.updateStatusMessages()
     }
-    this.displayOverlay = function (duration = 2000, playerDefeat = false) {
+    this.displayOverlay = function (duration = 2000, mode='default') {
         var overlay = document.getElementById('overlay')
-        if (playerDefeat) {
+        if (mode === 'defeat') {
             overlay.classList.add('defeat-screen')
+        }
+        if (mode === 'victory') {
+            overlay.classList.add('victory-screen')
         }
         overlay.classList.remove('hidden')
         setTimeout(function () {
             overlay.classList.add('hidden')
-            if (playerDefeat) {
+            if (mode === 'defeat') {
                 overlay.classList.remove('defeat-screen')
+            }
+            if (mode === 'victory') {
+                overlay.classList.remove('victory-screen')
             }
         }, duration)
     }
@@ -280,6 +288,8 @@ var Game = function () {
     this.setInitialState = function () {
         player = game.characters.player
         enemy = game.characters.enemy
+        game.updateCharacterImage(player, 'idle')
+        game.updateCharacterImage(enemy, 'idle')
         game.drawActionInterface()
         this.enableInterface('item-interface')
         this.enableInterface('attack-interface')
@@ -296,10 +306,49 @@ var Game = function () {
             this.disableInterface('item-interface')
             this.disableInterface('attack-interface')
             if (player.hull <= 0) {
-                this.displayOverlay(3000, true)
+                this.displayOverlay(3000, 'defeat')
+            } else {
+                this.displayOverlay(3000, 'victory')
             }
             setTimeout(this.newGame, 3000)
         }
+    }
+    this.updateCharacterImage = function (character, imageType) {
+        var imageInfo = {
+            player: {
+                wrapperId: 'player-image-wrapper',
+                default: {
+                    idle: 'images/player-default-idle.png',
+                    attack: 'images/player-default-attack.png'
+                },
+                pulse: {
+                    idle: 'images/player-pulse-idle.png',
+                    attack: 'images/player-pulse-attack.png'
+                },
+                plasma: {
+                    idle: 'images/player-plasma-idle.png',
+                    attack: 'images/player-plasma-attack.png'
+                }
+            },
+            enemy: {
+                wrapperId: 'enemy-image-wrapper',
+                default: {
+                    idle: 'images/enemy-default-idle.png',
+                    attack: 'images/enemy-default-attack.png'
+                }
+            }
+        }
+        
+        var imageWrapper = document.getElementById(imageInfo[character.type].wrapperId)
+        var equippedItemType
+        if (character.equipment.weapon === this.availableItems['pulseRounds'].obj) {
+            equippedItemType = 'pulse'
+        } else if (character.equipment.weapon === this.availableItems['plasmaRounds'].obj) {
+            equippedItemType = 'plasma'
+        } else {
+            equippedItemType = 'default'
+        }
+        imageWrapper.innerHTML = `<img src="${imageInfo[character.type][equippedItemType][imageType]}" class="character-image">`
     }
     this.toggleEquippedItem = function (item, character) {
         if (character.equipment[this.availableItems[item].obj.slot] === this.availableItems[item].obj) {
@@ -308,18 +357,20 @@ var Game = function () {
             character.equipment[this.availableItems[item].obj.slot] = this.availableItems[item].obj
         }
         game.updateActionInterface(character)
+        game.updateCharacterImage(character, 'idle')
         game.updateDisplay()
     }
     this.enemyAction = function (enemy = enemy, target = player) {
+        //TODO: Add greater range of enemy behaviors
         if (enemy.availableActions().includes('burstFire')) {
-            enemy.attack('burstFire', target)
+            enemy.attackAnimation('burstFire', target)
         } else {
-            enemy.attack('singleShot', target)
+            enemy.attackAnimation('singleShot', target)
         }
     }
 }
 
-var Character = function (name, type, maxHull = 500, baseHullRegen = 0, maxEnergy = 100,
+var Character = function (name, type, maxHull = 200, baseHullRegen = 0, maxEnergy = 100,
     baseEnergyRegen = 5, baseAttack = 1, baseDefense = 1) {
     this.name = name
     this.type = type
@@ -414,13 +465,26 @@ var Character = function (name, type, maxHull = 500, baseHullRegen = 0, maxEnerg
                 this.equipment[slot].numUses -= 1
             }
         }
-
         game.updateDisplay()
         game.checkForGameEnd()
-        if (this === player) {
-            game.currentTurn += 1
-            game.enemyAction(enemy)
-        }
+    }
+    this.attackAnimation = function(type, target) {
+        var character = this
+        game.updateCharacterImage(this, 'attack')
+        character.attack(type, target)
+        game.disableInterface('attack-interface')
+        game.disableInterface('item-interface')
+        setTimeout(function(){
+            game.updateCharacterImage(character, 'idle')
+            if (character === player) {
+                game.currentTurn += 1
+                game.enemyAction(enemy)
+            }
+        }, 500)
+        setTimeout(function(){
+            game.enableInterface('attack-interface')
+            game.enableInterface('item-interface')
+        }, 1000)
     }
 }
 

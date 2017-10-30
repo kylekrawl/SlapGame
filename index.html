@@ -23,8 +23,8 @@
 						<p class="status-message" id="hull-condition">--</p>
 						<p class="status-message" id="power-level">--</p>
 						<p>Attack Modifier |
-								<span id="player-attack-mod">--</span>
-							</p>
+							<span id="player-attack-mod">--</span>
+						</p>
 						<p>Defense Modifier |
 							<span id="player-defense-mod">--</span>
 						</p>
@@ -37,13 +37,13 @@
 			<div class="col-sm-4">
 				<div class="main-interface flex v-center h-center">
 					<div class="content-wrapper text-center">
-						<p>Turn:
-							<span id="turn">--</span>
+						<p class="turn-counter">Turn:
+							<span id="turn" class="turn">--</span>
 						</p>
-						<p class="interface-label">Equipment</p>
+						<p class="interface-label">- Equipment -</p>
 						<div id="item-interface" class="interface flex v-center h-center">
 						</div>
-						<p class="interface-label">Attack Modes</p>
+						<p class="interface-label">- Attack Modes -</p>
 						<div id="attack-interface" class="interface flex v-center h-center">
 						</div>
 					</div>
@@ -63,19 +63,23 @@
 				<div class="characters flex v-center h-space-between">
 					<div class="player-wrapper">
 						<div class="stat-display text-center">
-							<span id="player-name">--</span>
+							<p id="player-name" class="character-name">--</p>
 							<div id="player-hull-bar-wrapper"></div>
 							<div id="player-energy-bar-wrapper"></div>
 						</div>
-						<img src="//placehold.it/200x300" alt="">
+						<div id="player-image-wrapper">
+							<img src="images/player-default-idle.png" class="character-image">
+						</div>
 					</div>
 					<div class="enemy-wrapper">
 						<div class="stat-display text-center">
-							<span id="enemy-name">--</span>
+							<p id="enemy-name" class="character-name">--</p>
 							<div id="enemy-hull-bar-wrapper"></div>
 							<div id="enemy-energy-bar-wrapper"></div>
 						</div>
-						<img src="//placehold.it/200x300" alt="">
+						<div id="enemy-image-wrapper">
+							<img src="images/enemy-default-idle.png" class="character-image">
+						</div>
 					</div>
 				</div>
 			</div>

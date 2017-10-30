@@ -50,6 +50,10 @@ Controls Area
 -------------------
 */
 
+.turn-counter {
+    font-size: 1.3em;
+}
+
 .controls-area {
     background: #0d0d0d;
     border-top: 2px solid #1a1a1a;
@@ -59,7 +63,7 @@ Controls Area
 .main-interface,
 .player-status,
 .enemy-status {
-    height: 25vh;
+    height: 30vh;
     background: #000;
     border-left: 2px solid #1a1a1a;
     border-right: 2px solid #1a1a1a;
@@ -120,15 +124,26 @@ Combat Area
 */
 
 .combat-area {
-    background: #1a000d;
+    background: url('images/space-background.png') no-repeat;
+    background-size: cover;
 }
 
 .characters {
-    height: 75vh;
+    height: 70vh;
+}
+
+.character-image {
+    height: 300px;
+}
+
+.character-name {
+    font-size: 1.2em;
+    margin-bottom: 5px;
 }
 
 .stat-display {
     padding: 10px;
+    width: 100%;
 }
 
 .stat-bar {
@@ -172,12 +187,14 @@ Buttons
 .btn-disabled:hover {
     color: #ff3300;
     border: 2px solid #ff3300;
+    box-shadow: 0px 0px 10px #ff3300;
 }
 
 .btn-equipped,
 .btn-equipped:hover {
     color: #40ff00;
     border: 2px solid #40ff00;
+    box-shadow: 0px 0px 10px #40ff00;
 }
 
 /*
@@ -204,6 +221,11 @@ Overlay
     opacity: 0.5;
 }
 
+.victory-screen {
+    background: #40ff00;
+    opacity: 0.5;
+}
+
 .hidden {
     display: none;
 }
@@ -216,12 +238,12 @@ Animations
 
 @keyframes fade-blink {
     0% {
-        opacity: 0.3;
+        opacity: 0.1;
     }
     50% {
         opacity: 1;
     }
     100% {
-        opacity: 0.3;
+        opacity: 0.1;
     }
 }
