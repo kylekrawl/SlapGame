@@ -1,3 +1,7 @@
+// Initialize Globals
+var player; var enemy; var utilities; var game;
+
+// Constructors
 var Utilities = function () {
     this.isEmptyObject = function (obj) {
         var empty = true
@@ -226,6 +230,8 @@ var Game = function () {
         interface.classList.remove('disabled-interface')
     }
     this.updateDisplay = function () {
+        //TODO: Break out some of these values into an initializeDisplay function, some will
+        //not need to be repeatedly updated
         var elementsToUpdate = [
             {
                 id: 'turn',
@@ -504,7 +510,6 @@ var Item = function (name, numUses, slot, attackMod = 0, defenseMod = 0, energyC
 }
 
 // Initialize Game
-var player; var enemy;
 var utilities = new Utilities()
 var game = new Game()
 game.setInitialState()
