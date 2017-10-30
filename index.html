@@ -6,6 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<title>Slap Object Game</title>
+	<link href="https://fonts.googleapis.com/css?family=Anonymous+Pro" rel="stylesheet">
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
 	 crossorigin="anonymous">
 	<link rel="stylesheet" href="game.css">
@@ -19,6 +20,15 @@
 					<div class="content-wrapper text-center">
 						<p class="status-message" id="hull-condition">--</p>
 						<p class="status-message" id="power-level">--</p>
+						<p>Attack Modifier |
+								<span id="player-attack-mod">--</span>
+							</p>
+						<p>Defense Modifier |
+							<span id="player-defense-mod">--</span>
+						</p>
+						<p>Energy Regeneration |
+							<span id="player-energy-regen">--</span>
+						</p>
 					</div>
 				</div>
 			</div>
@@ -29,10 +39,10 @@
 							<span id="turn">--</span>
 						</p>
 						<p class="interface-label">Equipment</p>
-						<div id="item-interface" class="flex v-center h-center">
+						<div id="item-interface" class="interface flex v-center h-center">
 						</div>
 						<p class="interface-label">Attack Modes</p>
-						<div id="attack-interface" class="flex v-center h-center">
+						<div id="attack-interface" class="interface flex v-center h-center">
 						</div>
 					</div>
 				</div>
@@ -51,7 +61,7 @@
 					<div class="player-wrapper">
 						<div class="stat-display text-center">
 							<span id="player-name">--</span>
-							<div id="player-health-bar-wrapper"></div>
+							<div id="player-hull-bar-wrapper"></div>
 							<div id="player-energy-bar-wrapper"></div>
 						</div>
 						<img src="//placehold.it/200x300" alt="">
@@ -59,7 +69,7 @@
 					<div class="enemy-wrapper">
 						<div class="stat-display text-center">
 							<span id="enemy-name">--</span>
-							<div id="enemy-health-bar-wrapper"></div>
+							<div id="enemy-hull-bar-wrapper"></div>
 							<div id="enemy-energy-bar-wrapper"></div>
 						</div>
 						<img src="//placehold.it/200x300" alt="">

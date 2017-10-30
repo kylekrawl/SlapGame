@@ -19,29 +19,29 @@ var Utilities = function () {
     }
 }
 
-//(name, numUses, slot, attackMod = 1, defenseMod = 1, energyCostMod = 1, energyRegenMod = 1, healthRegenMod = 1)
-//(name, type, maxHealth = 500, baseHealthRegen = 0, maxEnergy = 100, baseEnergyRegen = 5, baseAttack = 1, baseDefense = 1)
+//(name, numUses, slot, attackMod = 0, defenseMod = 0, energyCostMod = 0, energyRegenMod = 0, hullRegenMod = 0)
+//(name, type, maxHull = 500, baseHullRegen = 0, maxEnergy = 100, baseEnergyRegen = 5, baseAttack = 1, baseDefense = 1)
 var Game = function () {
     this.currentTurn = 1
     this.availableItems = {
         plasmaRounds: {
             name: 'Plasma Rounds',
-            obj: new Item('Plasma Rounds', 3, 'weapon', 1.5, 1, 3, 0.5),
+            obj: new Item('Plasma Rounds', 3, 'weapon', 1.5, 0, 3, -0.5),
             id: 'plasma-rounds'
         },
         pulseRounds: {
             name: 'Pulse Rounds',
-            obj: new Item('Pulse Rounds', Infinity, 'weapon', 1.2, 1, 2, 0.5),
+            obj: new Item('Pulse Rounds', Infinity, 'weapon', 1.2, 0, 1, -0.5),
             id: 'pulse-rounds'
         },
         barrier: {
             name: 'Barrier',
-            obj: new Item('Barrier', Infinity, 'utility', 1, 2, 1.5, 1, 0),
+            obj: new Item('Barrier', Infinity, 'utility', 0, 2, 1.5, -1),
             id: 'barrier'
         },
         recharger: {
             name: 'Recharger',
-            obj: new Item('Recharger', 5, 'utility', 1, 1, 1, 1.5, 0),
+            obj: new Item('Recharger', 5, 'utility', 0, 0, 0, 1.5),
             id: 'recharger'
         }
     }
@@ -59,7 +59,7 @@ var Game = function () {
             baseDamage: 15
         },
         overcharge: {
-            name: 'Overcharge',
+            name: 'Overcharge Shot',
             id: 'overcharge',
             baseEnergyCost: 20,
             baseDamage: 25
@@ -88,26 +88,28 @@ var Game = function () {
     this.drawCharacterStatBars = function(character) {
         var statBars = {
             player: {
-                health: {
-                    wrapperId: 'player-health-bar-wrapper',
-                    barId: 'player-health-bar',
-                    statId: 'player-health',
-                    max: 'maxHealth'
+                hull: {
+                    wrapperId: 'player-hull-bar-wrapper',
+                    barId: 'player-hull-bar',
+                    statId: 'player-hull',
+                    styleClass: 'hull-bar',
+                    max: 'maxHull'
                 },
                 energy: {
                     wrapperId: 'player-energy-bar-wrapper',
                     barId: 'player-energy-bar',
                     statId: 'player-energy',
+                    styleClass: 'energy-bar',
                     max: 'maxEnergy'
                 }
             },
             enemy: {
-                health: {
-                    wrapperId: 'enemy-health-bar-wrapper',
-                    barId: `enemy-health-bar`,
-                    statId: 'enemy-health',
-                    styleClass: 'health-bar',
-                    max: 'maxHealth'
+                hull: {
+                    wrapperId: 'enemy-hull-bar-wrapper',
+                    barId: `enemy-hull-bar`,
+                    statId: 'enemy-hull',
+                    styleClass: 'hull-bar',
+                    max: 'maxHull'
                 },
                 energy: {
                     wrapperId: 'enemy-energy-bar-wrapper',
@@ -118,17 +120,15 @@ var Game = function () {
                 }
             }
         }
-        console.log(statBars[character.type])
         for (var statType in statBars[character.type]) { 
             var statBarHTML = `<span>${utilities.capitalize(statType)}</span>
                                <div class="stat-bar">
-                                    <div id="${statBars[character.type][statType].barId}" class="progress-bar" role="progressbar" aria-valuenow="${character[statType]}" 
-                                    aria-valuemin="0" aria-valuemax="${character[statBars[character.type][statType].max]}" style="width: ${Math.round(character[statType]/
-                               character[statBars[character.type][statType].max]*100)}%">
+                                    <div id="${statBars[character.type][statType].barId}" class="progress-bar ${statBars[character.type][statType].styleClass}" role="progressbar" 
+                                    aria-valuenow="${character[statType]}" aria-valuemin="0" aria-valuemax="${character[statBars[character.type][statType].max]}" style="width: 
+                                    ${Math.round(character[statType]/character[statBars[character.type][statType].max]*100)}%">
                                         <span id="${statBars[character.type][statType].statId}">${character[statType]}</span>
                                     </div>
                                </div>`
-            console.log(statBarHTML)
             document.getElementById(statBars[character.type][statType].wrapperId).innerHTML = statBarHTML
         }
     }
@@ -164,12 +164,12 @@ var Game = function () {
         var hullConditionMessage = document.getElementById('hull-condition')
         var powerLevelMessage = document.getElementById('power-level')
         var enemyStatusMessage = document.getElementById('enemy-status')
-        if (player.health > player.maxHealth/2) {
+        if (player.hull > player.maxHull/2) {
             hullConditionMessage.innerText = "Hull Condition Normal"
             hullConditionMessage.classList.add('status-normal')
             hullConditionMessage.classList.remove('status-warning')
             hullConditionMessage.classList.remove('status-critical')
-        } else if (player.health > player.maxHealth/10) {
+        } else if (player.hull > player.maxHull/10) {
             hullConditionMessage.innerText = "Warning: Significant Hull Damage"
             hullConditionMessage.classList.add('status-warning')
             hullConditionMessage.classList.remove('status-normal')
@@ -196,13 +196,21 @@ var Game = function () {
             powerLevelMessage.classList.remove('status-warning')
             powerLevelMessage.classList.remove('status-normal')
         }
-        if (enemy.health > 0) {
-            enemyStatusMessage.innerText = "Status: Engaged in Combat"
+        if (enemy.hull > 0) {
+            enemyStatusMessage.innerText = "Status: Pilot In Combat"
             enemyStatusMessage.classList.add('status-warning')
             enemyStatusMessage.classList.remove('status-normal')
+            enemyStatusMessage.classList.remove('status-critical')
         } else {
             enemyStatusMessage.innerText = "Enemy Combatant Destroyed"
             enemyStatusMessage.classList.add('status-normal')
+            enemyStatusMessage.classList.remove('status-warning')
+            enemyStatusMessage.classList.remove('status-critical')
+        }
+        if (player.hull <= 0) {
+            enemyStatusMessage.innerText = "Communication Lost"
+            enemyStatusMessage.classList.add('status-critical')
+            enemyStatusMessage.classList.remove('status-normal')
             enemyStatusMessage.classList.remove('status-warning')
         }
     }
@@ -227,6 +235,18 @@ var Game = function () {
             {
                 id: 'enemy-name',
                 value: this.characters.enemy.name
+            },
+            {
+                id: 'player-energy-regen',
+                value: `+${Math.round(player.baseEnergyRegen * player.calculateItemModifier('energyRegenMod'))}`
+            },
+            {
+                id: 'player-defense-mod',
+                value: `${Math.round(player.baseDefense * player.calculateItemModifier('defenseMod'))}x`
+            },
+            {
+                id: 'player-attack-mod',
+                value: `${Math.round(player.baseAttack * player.calculateItemModifier('attackMod'))}x`
             }
         ]
         for (var i = 0; i < elementsToUpdate.length; i++) {
@@ -253,7 +273,7 @@ var Game = function () {
     this.checkForGameEnd = function () {
         characterDefeated = false
         for (var characterType in this.characters) {
-            if (this.characters[characterType].health <= 0) {
+            if (this.characters[characterType].hull <= 0) {
                 characterDefeated = true
             }
         }
@@ -270,6 +290,7 @@ var Game = function () {
             character.equipment[this.availableItems[item].obj.slot] = this.availableItems[item].obj
         }
         game.updateActionInterface(character)
+        game.updateDisplay()
     }
     this.enemyAction = function (enemy = enemy, target = player) {
         if (enemy.availableActions().includes('burstFire')) {
@@ -280,13 +301,13 @@ var Game = function () {
     }
 }
 
-var Character = function (name, type, maxHealth = 500, baseHealthRegen = 0, maxEnergy = 100,
+var Character = function (name, type, maxHull = 500, baseHullRegen = 0, maxEnergy = 100,
     baseEnergyRegen = 5, baseAttack = 1, baseDefense = 1) {
     this.name = name
     this.type = type
-    this.maxHealth = maxHealth
-    this.health = this.maxHealth
-    this.baseHealthRegen = baseHealthRegen
+    this.maxHull = maxHull
+    this.hull = this.maxHull
+    this.baseHullRegen = baseHullRegen
     this.maxEnergy = maxEnergy
     this.energy = this.maxEnergy
     this.baseEnergyRegen = baseEnergyRegen
@@ -319,16 +340,19 @@ var Character = function (name, type, maxHealth = 500, baseHealthRegen = 0, maxE
             if (game.availableItems[itemType].obj.numUses > 0) {
                 out.push(game.availableItems[itemType].obj)
             }
+            if (game.availableItems[itemType].obj.numUses <= 0 && this.equipment[game.availableItems[itemType].obj.slot] === game.availableItems[itemType].obj) {
+                this.equipment[game.availableItems[itemType].obj.slot] = {}
+            }
         }
         return out
     }
     this.regenerateAttribute = function (attribute) {
         var attributeProperties = {
-            health:
+            hull:
             {
-                max: 'maxHealth',
-                base: 'baseHealthRegen',
-                mod: 'healthRegenMod'
+                max: 'maxHull',
+                base: 'baseHullRegen',
+                mod: 'hullRegenMod'
             },
             energy: {
                 max: 'maxEnergy',
@@ -358,14 +382,14 @@ var Character = function (name, type, maxHealth = 500, baseHealthRegen = 0, maxE
         if (enemyDefense > damage) {
             damage = 0
         }
-        target.health -= damage
-        if (target.health < 0) {
-            target.health = 0
+        target.hull -= damage
+        if (target.hull < 0) {
+            target.hull = 0
         }
 
         this.energy -= energyCost
         this.regenerateAttribute('energy')
-        this.regenerateAttribute('health')
+        this.regenerateAttribute('hull')
 
         for (var slot in this.equipment) {
             if (this.equipment[slot].numUses > 0) {
@@ -382,7 +406,7 @@ var Character = function (name, type, maxHealth = 500, baseHealthRegen = 0, maxE
     }
 }
 
-var Item = function (name, numUses, slot, attackMod = 1, defenseMod = 1, energyCostMod = 1, energyRegenMod = 1, healthRegenMod = 1) {
+var Item = function (name, numUses, slot, attackMod = 0, defenseMod = 0, energyCostMod = 0, energyRegenMod = 0, hullRegenMod = 0) {
     this.name = name
     this.numUses = numUses
     this.slot = slot
@@ -390,7 +414,7 @@ var Item = function (name, numUses, slot, attackMod = 1, defenseMod = 1, energyC
     this.defenseMod = defenseMod
     this.energyCostMod = energyCostMod
     this.energyRegenMod = energyRegenMod
-    this.healthRegenMod = energyRegenMod
+    this.hullRegenMod = hullRegenMod
 }
 
 // Initialize Game
