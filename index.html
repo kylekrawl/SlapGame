@@ -53,7 +53,7 @@
 				<div class="combat-status flex v-center h-center">
 					<div class="content-wrapper text-center">
 						<p class="status-message" id="combat-status">--</p>
-						<button class="btn-main" onclick="game.newGame()">Reset Mission</button>
+						<button class="btn-main" onclick="app.controllers.gameController.newGame()">Reset Mission</button>
 					</div>
 				</div>
 			</div>
@@ -85,7 +85,9 @@
 			</div>
 		</div>
 	</div>
-	<script src="game.js"></script>
+	<script src="app/game/game-service.js"></script>
+	<script src="app/game/game-controller.js"></script>
+	<script src="app/init.js"></script>
 </body>
 
 </html>
