@@ -62,7 +62,7 @@ Controls Area
 
 .main-interface,
 .player-status,
-.enemy-status {
+.combat-status {
     height: 30vh;
     background: #000;
     border-left: 2px solid #0d0d0d;
