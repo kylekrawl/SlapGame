@@ -3,7 +3,7 @@ function GameController() {
     // PRIVATE
 
     var gameService = new GameService()
-   
+
     function disableInterface(id) {
         var interface = document.getElementById(id)
         interface.classList.add('disabled-interface')
@@ -13,7 +13,7 @@ function GameController() {
         var interface = document.getElementById(id)
         interface.classList.remove('disabled-interface')
     }
-    
+
     function drawActionInterface() {
         var itemInterfaceHTML = ''
         var attackInterfaceHTML = ''
@@ -21,26 +21,26 @@ function GameController() {
         var attacks = gameService.getGameDict('attacks')
         for (var item in items) {
             itemInterfaceHTML += `<button id='${items[item].id}' class='btn-main'
-                                      onclick='app.controllers.gameController.toggleEquippedItem("${item}", app.controllers.gameController.gameService.getCharacter('player')'>
+                                      onclick='app.controllers.gameController.toggleEquippedItem()'>
                                       ${items[item].name}<br>${items[item].obj.numUses === Infinity ? '∞' :
-                                      items[item].obj.numUses}</button>`
+                    items[item].obj.numUses}</button>`
         }
         for (var attack in attacks) {
             attackInterfaceHTML += `<button id='${attacks[attack].id}' class='btn-main'
-                                        onclick='app.controllers.gameController.attackEvent("${attack}", app.controllers.gameController.gameService.getCharacter('player'),
-                                        app.controllers.gameController.gameService.getCharacter('enemy')'>
+                                        onclick='app.controllers.gameController.attackEvent("${attack}", "player", "enemy")'>
                                         ${attacks[attack].name}</button>`
         }
         document.getElementById('item-interface').innerHTML = itemInterfaceHTML
         document.getElementById('attack-interface').innerHTML = attackInterfaceHTML
     }
-    function updateActionInterface(character) {
-        this.drawActionInterface()
+    function updateActionInterface(characterType) {
+        drawActionInterface()
         var attacks = gameService.getGameDict('attacks')
         var items = gameService.getGameDict('items')
+        var character = gameService.getCharacter(characterType)
         for (var attack in attacks) {
             var element = document.getElementById(attacks[attack].id)
-            if (character.availableActions().includes(attack)) {
+            if (gameService.getCharacterAvailableActions(characterType).includes(attack)) { //getter method for available actions
                 element.disabled = false
                 element.classList.remove('btn-disabled')
             } else {
@@ -55,7 +55,7 @@ function GameController() {
             } else {
                 element.classList.remove('btn-equipped')
             }
-            if (character.availableItems().includes(game.items[item].obj)) {
+            if (gameService.getCharacterAvailableActions(characterType).includes(items[item].obj)) { //getter method for available actions
                 element.disabled = false
                 element.classList.remove('btn-disabled')
             } else {
@@ -67,8 +67,8 @@ function GameController() {
     }
     function applyStatusStyles(target, status) {
         var statusInfo = gameService.getGameDict('statusInfo')
-        var element = document.getElementById(this.statusInfo.targets[target].id)
-        var styleClasses = this.statusInfo.styleClasses
+        var element = document.getElementById(statusInfo.targets[target].id)
+        var styleClasses = statusInfo.styleClasses
         for (var statusType in styleClasses) {
             if (statusType === status) {
                 element.classList.add(styleClasses[statusType])
@@ -93,43 +93,44 @@ function GameController() {
         var player = gameService.getCharacter('player')
         var enemy = gameService.getCharacter('enemy')
         if (player.attributes.hull.current > player.attributes.hull.base / 2) {
-            this.setStatusMessage('hullCondition', 'normal')
-            this.applyStatusStyles('hullCondition', 'normal')
+            setStatusMessage('hullCondition', 'normal')
+            applyStatusStyles('hullCondition', 'normal')
         } else if (player.attributes.hull.current > player.attributes.hull.base / 10) {
-            this.setStatusMessage('hullCondition', 'warning')
-            this.applyStatusStyles('hullCondition', 'warning')
+            setStatusMessage('hullCondition', 'warning')
+            applyStatusStyles('hullCondition', 'warning')
         } else {
-            this.setStatusMessage('hullCondition', 'critical')
-            this.applyStatusStyles('hullCondition', 'critical')
+            setStatusMessage('hullCondition', 'critical')
+            applyStatusStyles('hullCondition', 'critical')
         }
         if (player.attributes.energy.current > player.attributes.energy.base / 2) {
-            this.setStatusMessage('powerLevel', 'normal')
-            this.applyStatusStyles('powerLevel', 'normal')
+            setStatusMessage('powerLevel', 'normal')
+            applyStatusStyles('powerLevel', 'normal')
         } else if (player.attributes.energy.current > player.attributes.energy.base / 10) {
-            this.setStatusMessage('powerLevel', 'warning')
-            this.applyStatusStyles('powerLevel', 'warning')
+            setStatusMessage('powerLevel', 'warning')
+            applyStatusStyles('powerLevel', 'warning')
         } else {
-            this.setStatusMessage('powerLevel', 'critical')
-            this.applyStatusStyles('powerLevel', 'critical')
+            setStatusMessage('powerLevel', 'critical')
+            applyStatusStyles('powerLevel', 'critical')
         }
         if (enemy.attributes.hull.current > 0) {
-            this.setStatusMessage('combatStatus', 'warning')
-            this.applyStatusStyles('combatStatus', 'warning')
+            setStatusMessage('combatStatus', 'warning')
+            applyStatusStyles('combatStatus', 'warning')
         } else {
-            this.setStatusMessage('combatStatus', 'normal')
-            this.applyStatusStyles('combatStatus', 'normal')
+            setStatusMessage('combatStatus', 'normal')
+            applyStatusStyles('combatStatus', 'normal')
         }
         if (player.attributes.hull.current <= 0) {
-            this.setStatusMessage('combatStatus', 'critical')
-            this.applyStatusStyles('combatStatus', 'critical')
+            setStatusMessage('combatStatus', 'critical')
+            applyStatusStyles('combatStatus', 'critical')
         }
     }
 
-    function drawCharacterStatBars(character) {
+    function drawCharacterStatBars(characterType) {
         var statBarInfo = gameService.getGameDict('statBarInfo')
-        var statBars = statBarInfo[character.type]
+        var statBars = statBarInfo[characterType]
+        var character = gameService.getCharacter(characterType)
         for (var statType in statBars) {
-            var statBarHTML = `<span>${utility.capitalize(statType)}</span>
+            var statBarHTML = `<span>${gameService.capitalize(statType)}</span>
                                    <div class="stat-bar">
                                         <div id="${statBars[statType].barId}" class="progress-bar ${statBars[statType].styleClass}" role="progressbar" 
                                         aria-valuenow="${character[statType]}" aria-valuemin="0" aria-valuemax="${character[statBars[statType].base]}" style="width: 
@@ -141,11 +142,12 @@ function GameController() {
         }
     }
 
-    function updateCharacterImage(character, imageType) {
+    function updateCharacterImage(characterType, imageType) {
         var imageInfo = gameService.getGameDict('imageInfo')
         var items = gameService.getGameDict('items')
-        var imageObj = imageInfo[character.type]
+        var imageObj = imageInfo[characterType]
         var imageWrapper = document.getElementById(imageObj.wrapperId)
+        var character = gameService.getCharacter(characterType)
         var equippedItemType
         if (character.equipment.weapon === items['pulseRounds'].obj) {
             equippedItemType = 'pulse'
@@ -188,7 +190,7 @@ function GameController() {
                     id: 'enemy-name',
                     value: `- ${gameService.getCharacterName('enemy')} -`
                 },
-    
+
             ],
             update: [
                 {
@@ -197,42 +199,42 @@ function GameController() {
                 },
                 {
                     id: 'player-energy-regen',
-                    value: `${Math.round(gameService.getCharacterAttribute('player', 'energy').baseRegen * 
-                    gameService.getCharacterItemModifier('player', 'energy', 'regen'))}`
+                    value: `${Math.round(gameService.getCharacterAttribute('player', 'energy').baseRegen *
+                        gameService.getCharacterItemModifier('player', 'energy', 'regen'))}`
                 },
                 {
                     id: 'player-defense-mod',
-                    value: `${Math.round(gameService.getCharacterAttribute('player', 'defenseRating').base * 
-                    gameService.getCharacter('player').calculateItemModifier('defenseRating', 'base'))}x`
+                    value: `${Math.round(gameService.getCharacterAttribute('player', 'defenseRating').base *
+                        gameService.getCharacterItemModifier('player', 'defenseRating', 'base'))}x`
                 },
+
                 {
                     id: 'player-attack-mod',
-                    value: `${Math.round(gameService.getCharacterAttribute('player', 'attackRating').base * 
-                    gameService.getCharacter('player').calculateItemModifier('attackRating', 'base'))}x`
+                    value: `${Math.round(gameService.getCharacterAttribute('player', 'attackRating').base *
+                        gameService.getCharacterItemModifier('player', 'attackRating', 'base'))}x`
                 }
             ]
         }
         var player = gameService.getCharacter('player')
         var enemy = gameService.getCharacter('enemy')
-        var attributeInfo = gameService.getGameDict('attributeInfo')
+        console.log(attributeInfo)
         var statArray = attributeInfo[mode]
         for (var i = 0; i < statArray.length; i++) {
             var stat = statArray[i]
             document.getElementById(stat.id).innerText = stat.value
         }
-        this.updateActionInterface(player)
-        this.drawCharacterStatBars(player)
-        this.drawCharacterStatBars(enemy)
-        this.updateStatusMessages()
+        //need to change all these to pass strings to service, stringified objects lose attached methods
+        updateActionInterface('player')
+        drawCharacterStatBars('player')
+        drawCharacterStatBars('enemy')
+        updateStatusMessages()
     }
 
     function setInitialState() {
-        var player = gameService.getCharacter('player')
-        var enemy = gameService.getCharacter('enemy')
         document.getElementById('player-wrapper').classList.remove('defeated')
         document.getElementById('enemy-wrapper').classList.remove('defeated')
-        updateCharacterImage(player, 'idle')
-        updateCharacterImage(enemy, 'idle')
+        updateCharacterImage('player', 'idle')
+        updateCharacterImage('enemy', 'idle')
         drawActionInterface()
         enableInterface('item-interface')
         enableInterface('attack-interface')
@@ -263,26 +265,40 @@ function GameController() {
 
     this.toggleEquippedItem = function toggleEquippedItem() {
         gameService.toggleEquippedItem()
-        updateActionInterface(character)
-        updateCharacterImage(character, 'idle')
+        updateActionInterface('player')
+        updateCharacterImage('player', 'idle')
         drawDisplay()
     }
 
-    this.attackEvent = function attackEvent(type, actor, target) {
-        var player = gameService.getCharacter('player')
-        var enemy = gameService.getCharacter('enemy')
-        var character = gameService.getCharacter(actor)
-        updateCharacterImage(this, 'attack')
-        character.attack(type, target)
+    this.enemyAction = function enemyAction() {
+        updateCharacterImage('enemy', 'attack')
+        gameService.enemyAction()
         drawDisplay()
         checkForGameEnd()
         disableInterface('attack-interface')
         disableInterface('item-interface')
         setTimeout(function () {
-            updateCharacterImage(character, 'idle')
-            if (character === player) {
+            updateCharacterImage(actorType, 'idle')
+        }, 500)
+        setTimeout(function () {
+            enableInterface('attack-interface')
+            enableInterface('item-interface')
+        }, 1000)
+    }
+
+    this.attackEvent = function attackEvent(attackType, actorType, targetType) {
+        updateCharacterImage(actorType, 'attack')
+        gameService.characterAttack(attackType, actorType, targetType)
+        drawDisplay()
+        checkForGameEnd()
+        disableInterface('attack-interface')
+        disableInterface('item-interface')
+        setTimeout(function () {
+            updateCharacterImage(actorType, 'idle')
+            console.log('ACTOR: ', actorType)
+            if (actorType === 'player') {
                 gameService.incrementTurn()
-                gameService.enemyAction(enemy)
+                this.enemyAction()
             }
         }, 500)
         setTimeout(function () {
@@ -301,5 +317,7 @@ function GameController() {
         drawOverlay()
         setInitialState()
     }
+
+    this.newGame()
 
 }

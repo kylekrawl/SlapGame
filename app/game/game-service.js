@@ -2,28 +2,27 @@ function GameService() {
 
     // PRIVATE
 
-    var utility; var game;
+    var game;
 
-    function Utility() {
-        this.isEmptyObject = function isEmptyObject(obj) {
-            var empty = true
-            for (var key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    empty = false
-                }
+    function isEmptyObject(obj) {
+        var empty = true
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                empty = false
             }
-            return empty
         }
-        this.getRandomNumber = function getRandomNumber(min = 0, max = 1) {
-            return Math.random() * (max - min) + min
-        }
-        this.randomArrayChoice = function randomArrayChoice(arr) {
-            return arr[Math.floor(getRandomNumber(0, arr.length))]
-        }
-        this.capitalize = function capitalize(str) {
-            return str.replace(str[0], str[0].toUpperCase())
-        }
+        return empty
     }
+    function getRandomNumber(min = 0, max = 1) {
+        return Math.random() * (max - min) + min
+    }
+    function randomArrayChoice(arr) {
+        return arr[Math.floor(getRandomNumber(0, arr.length))]
+    }
+    this.capitalize = function capitalize(str) {
+        return str.replace(str[0], str[0].toUpperCase())
+    }
+
 
     function GameInstance() {
         this.currentTurn = 1
@@ -172,32 +171,6 @@ function GameService() {
                 }
             }
         }
-
-        this.characterDefeated = function characterDefeated() {
-            defeated = false
-            for (var characterType in this.characters) {
-                if (this.characters[characterType].attributes.hull.current <= 0) {
-                    defeated = true
-                }
-            }
-            return defeated
-        }
-
-        this.toggleEquippedItem = function toggleEquippedItem(item, character) {
-            if (character.equipment[this.items[item].obj.slot] === this.items[item].obj) {
-                character.equipment[this.items[item].obj.slot] = {}
-            } else {
-                character.equipment[this.items[item].obj.slot] = this.items[item].obj
-            }
-        }
-        this.enemyAction = function enemyAction(enemy = this.characters.enemy, target = this.characters.player) {
-            //TODO: Add greater range of enemy behaviors
-            if (enemy.availableActions().includes('burstFire')) {
-                enemy.attackEvent('burstFire', target)
-            } else {
-                enemy.attackEvent('singleShot', target)
-            }
-        }
     }
 
     function Character(name, type, baseHull = 200, baseHullRegen = 0, baseEnergy = 100,
@@ -237,7 +210,7 @@ function GameService() {
         this.calculateItemModifier = function calculateItemModifier(attribute, type) {
             var out = 1
             for (var slot in this.equipment) {
-                if (!utility.isEmptyObject(this.equipment[slot])) {
+                if (!isEmptyObject(this.equipment[slot])) {
                     out += this.equipment[slot].mods[attribute][type]
                 }
             }
@@ -281,7 +254,7 @@ function GameService() {
         }
         this.attack = function attack(type, target) {
             //TODO: implement functionality for damage and costs for stats other than hull and energy (respectively)
-            var damage = Math.round(utility.getRandomNumber(0.6, 1) * (this.attributes.attackRating.base + game.attacks[type].baseDamage.hull) *
+            var damage = Math.round(getRandomNumber(0.6, 1) * (this.attributes.attackRating.base + game.attacks[type].baseDamage.hull) *
                 this.calculateItemModifier('attackRating', 'base'))
             var energyCost = Math.round(game.attacks[type].baseCost.energy * this.calculateItemModifier('energy', 'base'))
             var enemyDefense = Math.round(target.attributes.defenseRating.base * target.calculateItemModifier('defenseRating', 'base'))
@@ -336,8 +309,8 @@ function GameService() {
     // PUBLIC
 
     this.initializeFirstGame = function initializeFirstGame() {
-        utility = new Utility()
         game = new GameInstance()
+        console.log(game)
         game.setInitialState()
     }
 
@@ -355,13 +328,20 @@ function GameService() {
 
     this.getGameDict = function getGameDict(dict) {
         var game = this.getCurrentGameInstance()
+        console.log(game)
         if (game.hasOwnProperty(dict)) {
+            console.log('dict: ', game[dict])
             return game[dict]
         }
     }
 
     this.getCharacterName = function getCharacterName(type) {
         return this.getCharacter(type).name
+    }
+
+    this.characterAttack = function characterAttack(attackType, actorType, targetType) {
+        target = game.characters[targetType]
+        game.characters[actorType].attack(attackType, target)
     }
 
     this.getCharacterAttribute = function getCharacterAttribute(type, attribute) {
@@ -372,9 +352,21 @@ function GameService() {
     }
 
     this.getCharacterItemModifier = function getCharacterItemModifier(charType, attribute, attributeType) {
-        var character = this.getCharacter(charType)
-        console.log(character)
-        return character.calculateItemModifier(attribute, attributeType)
+        var character = game.characters[charType]
+        var itemModifier = character.calculateItemModifier(attribute, attributeType)
+        return itemModifier
+    }
+
+    this.getCharacterAvailableItems = function getCharacterAvailableItems(charType) {
+        var character = game.characters[charType]
+        var availableItems = JSON.parse(JSON.stringify(character.availableItems()))
+        return availableItems
+    }
+
+    this.getCharacterAvailableActions = function getCharacterAvailableActions(charType) {
+        var character = game.characters[charType]
+        var availableActions = JSON.parse(JSON.stringify(character.availableActions()))
+        return availableActions
     }
 
     this.getCurrentTurn = function getCurrentTurn() {
@@ -387,5 +379,34 @@ function GameService() {
 
     this.newGame = function newGame() {
         game = new GameInstance()
+    }
+
+    this.characterDefeated = function characterDefeated() {
+        defeated = false
+        for (var characterType in game.characters) {
+            if (game.characters[characterType].attributes.hull.current <= 0) {
+                defeated = true
+            }
+        }
+        return defeated
+    }
+
+    this.toggleEquippedItem = function toggleEquippedItem(item, characterType) {
+        character = game.characters[characterType]
+        if (character.equipment[this.items[item].obj.slot] === this.items[item].obj) {
+            character.equipment[this.items[item].obj.slot] = {}
+        } else {
+            character.equipment[this.items[item].obj.slot] = this.items[item].obj
+        }
+    }
+    this.enemyAction = function enemyAction() {
+        //TODO: Add greater range of enemy behaviors
+        var enemy = game.characters.enemy
+        var target = game.characters.player
+        if (enemy.availableActions().includes('burstFire')) {
+            this.characterAttack('burstFire', 'enemy', 'player')
+        } else {
+            this.characterAttack('singleShot', 'enemy', 'player')
+        }
     }
 }
