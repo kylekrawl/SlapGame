@@ -3,6 +3,7 @@ function GameController() {
     // PRIVATE
 
     var gameService = new GameService()
+    var controller = this
 
     function disableInterface(id) {
         var interface = document.getElementById(id)
@@ -18,11 +19,12 @@ function GameController() {
         var itemInterfaceHTML = ''
         var attackInterfaceHTML = ''
         var items = gameService.getGameDict('items')
+        console.log(items)
         var attacks = gameService.getGameDict('attacks')
         for (var item in items) {
             itemInterfaceHTML += `<button id='${items[item].id}' class='btn-main'
-                                      onclick='app.controllers.gameController.toggleEquippedItem()'>
-                                      ${items[item].name}<br>${items[item].obj.numUses === Infinity ? '∞' :
+                                      onclick='app.controllers.gameController.toggleEquippedItem("${item}","player")'>
+                                      ${items[item].name}<br>${items[item].obj.numUses > 1000000 ? '∞' :
                     items[item].obj.numUses}</button>`
         }
         for (var attack in attacks) {
@@ -55,7 +57,7 @@ function GameController() {
             } else {
                 element.classList.remove('btn-equipped')
             }
-            if (gameService.getCharacterAvailableActions(characterType).includes(items[item].obj)) { //getter method for available actions
+            if (gameService.getCharacterAvailableItems(characterType).includes(items[item].obj)) { //getter method for available items
                 element.disabled = false
                 element.classList.remove('btn-disabled')
             } else {
@@ -217,7 +219,6 @@ function GameController() {
         }
         var player = gameService.getCharacter('player')
         var enemy = gameService.getCharacter('enemy')
-        console.log(attributeInfo)
         var statArray = attributeInfo[mode]
         for (var i = 0; i < statArray.length; i++) {
             var stat = statArray[i]
@@ -246,25 +247,25 @@ function GameController() {
         var player = gameService.getCharacter('player')
         var enemy = gameService.getCharacter('enemy')
         if (gameService.characterDefeated()) {
-            this.disableInterface('item-interface')
-            this.disableInterface('attack-interface')
+            disableInterface('item-interface')
+            disableInterface('attack-interface')
             if (player.attributes.hull.current <= 0) {
                 player.attributes.energy.current = 0
-                this.updateStatusMessages()
+                updateStatusMessages()
                 document.getElementById('player-wrapper').classList.add('defeated')
-                this.drawOverlay(3000, 'defeat')
+                drawOverlay(3000, 'defeat')
             } else {
                 document.getElementById('enemy-wrapper').classList.add('defeated')
-                this.drawOverlay(3000, 'victory')
+                drawOverlay(3000, 'victory')
             }
-            setTimeout(this.newGame, 3000)
+            setTimeout(controller.newGame, 3000)
         }
     }
 
     // PUBLIC
 
-    this.toggleEquippedItem = function toggleEquippedItem() {
-        gameService.toggleEquippedItem()
+    this.toggleEquippedItem = function toggleEquippedItem(item, characterType) {
+        gameService.toggleEquippedItem(item, characterType)
         updateActionInterface('player')
         updateCharacterImage('player', 'idle')
         drawDisplay()
@@ -278,7 +279,7 @@ function GameController() {
         disableInterface('attack-interface')
         disableInterface('item-interface')
         setTimeout(function () {
-            updateCharacterImage(actorType, 'idle')
+            updateCharacterImage('enemy', 'idle')
         }, 500)
         setTimeout(function () {
             enableInterface('attack-interface')
@@ -287,6 +288,7 @@ function GameController() {
     }
 
     this.attackEvent = function attackEvent(attackType, actorType, targetType) {
+        var gameController = this
         updateCharacterImage(actorType, 'attack')
         gameService.characterAttack(attackType, actorType, targetType)
         drawDisplay()
@@ -295,10 +297,9 @@ function GameController() {
         disableInterface('item-interface')
         setTimeout(function () {
             updateCharacterImage(actorType, 'idle')
-            console.log('ACTOR: ', actorType)
             if (actorType === 'player') {
                 gameService.incrementTurn()
-                this.enemyAction()
+                gameController.enemyAction()
             }
         }, 500)
         setTimeout(function () {

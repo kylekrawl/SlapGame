@@ -38,7 +38,7 @@ function GameService() {
             },
             pulseRounds: {
                 name: 'Pulse Rounds',
-                obj: new Item('Pulse Rounds', Infinity, 'weapon', 1.2, 0, 1, -0.5),
+                obj: new Item('Pulse Rounds', 10000000000, 'weapon', 1.2, 0, 1, -0.5),
                 id: 'pulse-rounds'
             },
             barrier: {
@@ -310,17 +310,15 @@ function GameService() {
 
     this.initializeFirstGame = function initializeFirstGame() {
         game = new GameInstance()
-        console.log(game)
         game.setInitialState()
     }
 
     this.getCurrentGameInstance = function getCurrentGameInstance() {
-        return JSON.parse(JSON.stringify(game))
+        return game
     }
 
     this.getCharacter = function getCharacter(type) {
         var game = this.getCurrentGameInstance()
-        console.log(type, game.characters[type])
         if (game.characters.hasOwnProperty(type)) {
             return game.characters[type]
         }
@@ -328,9 +326,7 @@ function GameService() {
 
     this.getGameDict = function getGameDict(dict) {
         var game = this.getCurrentGameInstance()
-        console.log(game)
         if (game.hasOwnProperty(dict)) {
-            console.log('dict: ', game[dict])
             return game[dict]
         }
     }
@@ -359,13 +355,14 @@ function GameService() {
 
     this.getCharacterAvailableItems = function getCharacterAvailableItems(charType) {
         var character = game.characters[charType]
-        var availableItems = JSON.parse(JSON.stringify(character.availableItems()))
+        var availableItems = character.availableItems()
+        console.log(character, ' available items: ', availableItems)
         return availableItems
     }
 
     this.getCharacterAvailableActions = function getCharacterAvailableActions(charType) {
         var character = game.characters[charType]
-        var availableActions = JSON.parse(JSON.stringify(character.availableActions()))
+        var availableActions = character.availableActions()
         return availableActions
     }
 
@@ -393,10 +390,10 @@ function GameService() {
 
     this.toggleEquippedItem = function toggleEquippedItem(item, characterType) {
         character = game.characters[characterType]
-        if (character.equipment[this.items[item].obj.slot] === this.items[item].obj) {
-            character.equipment[this.items[item].obj.slot] = {}
+        if (character.equipment[game.items[item].obj.slot] === game.items[item].obj) {
+            character.equipment[game.items[item].obj.slot] = {}
         } else {
-            character.equipment[this.items[item].obj.slot] = this.items[item].obj
+            character.equipment[game.items[item].obj.slot] = game.items[item].obj
         }
     }
     this.enemyAction = function enemyAction() {
